@@ -17,7 +17,7 @@ def add_raw_13f_data_to_database(cik, quarter, holdings, test=False):
     # load .env data, create the format for the beginning of the id, and set up the format for the queries
     load_dotenv()
     id_start = str(cik) + '-' + str(quarter) + '-'
-    sql = "INSERT INTO `raw_13f_data ` (`id`, `cik`, `quarter`, `issuer`, `cusip`, `class`, `value`, `share/prn_amt`, `share/prn_type`) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)"
+    sql = "INSERT INTO `raw_13f_data` (`HoldingID`, `cik`, `quarter`, `issuer`, `cusip`, `class`, `value`, `shareprn_amount`, `shareprn_type`) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)"
     # connect to the database
     if test:
         connection = pymysql.connect(
