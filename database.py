@@ -1,6 +1,7 @@
 from dotenv import load_dotenv
 import os
 import pymysql
+import logging
 
 
 def add_raw_13f_data_to_database(cik, quarter, holdings):
@@ -30,9 +31,13 @@ def add_raw_13f_data_to_database(cik, quarter, holdings):
         holding_id = id_start + holding["cusip"]
         if put_call != None:
             holding_id = holding_id + '-' + put_call
+        try:
+            connection.cursor().execute(sql, (holding_id, cik, quarter, holding["nameOfIssuer"], holding["cusip"], holding[
+                "titleOfClass"], holding["value"], holding["shrsOrPrnAmt"]["sshPrnamt"], holding["shrsOrPrnAmt"]["sshPrnamtType"], put_call))
+            connection.commit()
+        except pymysql.err.IntegrityError:
+            logging.info(
+                "Entry with id %s is already in the database", (holding_id))
 
-        connection.cursor().execute(sql, (holding_id, cik, quarter, holding["nameOfIssuer"], holding["cusip"], holding[
-            "titleOfClass"], holding["value"], holding["shrsOrPrnAmt"]["sshPrnamt"], holding["shrsOrPrnAmt"]["sshPrnamtType"], put_call))
-        connection.commit()
     # Returning the id_start variable.
     return id_start
