@@ -3,7 +3,7 @@ import os
 import pymysql
 
 
-def add_raw_13f_data_to_database(cik, quarter, holdings, test=False):
+def add_raw_13f_data_to_database(cik, quarter, holdings):
     """
     It takes in a cik, quarter, and list of holdings, and adds them to the database
 
@@ -19,20 +19,12 @@ def add_raw_13f_data_to_database(cik, quarter, holdings, test=False):
     id_start = str(cik) + '-' + str(quarter) + '-'
     sql = "INSERT INTO `raw_13f_data` (`HoldingID`, `cik`, `quarter`, `issuer`, `cusip`, `class`, `value`, `shareprn_amount`, `shareprn_type`) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)"
     # connect to the database
-    if test:
-        connection = pymysql.connect(
-            host=os.environ.get("DB_HOST"),
-            user=os.environ.get("DB_USER"),
-            password=os.environ.get("DB_PASSWORD"),
-            database=os.environ.get("TEST_DB_NAME")
-        )
-    else:
-        connection = pymysql.connect(
-            host=os.environ.get("DB_HOST"),
-            user=os.environ.get("DB_USER"),
-            password=os.environ.get("DB_PASSWORD"),
-            database=os.environ.get("DB_NAME")
-        )
+    connection = pymysql.connect(
+        host=os.environ.get("DB_HOST"),
+        user=os.environ.get("DB_USER"),
+        password=os.environ.get("DB_PASSWORD"),
+        database=os.environ.get("DB_NAME")
+    )
     # go through each individual holding
     for i, holding in enumerate(holdings):
         # add the holding to the databas

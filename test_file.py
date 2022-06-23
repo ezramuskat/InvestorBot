@@ -4,6 +4,7 @@ import os
 import pymysql
 import database
 
+# WARNING: make sure your environment variables point to the test database before running any tests
 
 # Fixtures
 
@@ -202,7 +203,7 @@ def cleanup():
         host=os.environ.get("DB_HOST"),
         user=os.environ.get("DB_USER"),
         password=os.environ.get("DB_PASSWORD"),
-        database=os.environ.get("TEST_DB_NAME")
+        database=os.environ.get("DB_NAME")
     )
     # clean up database
     connection.cursor().execute("DELETE FROM `raw_13f_data`")
@@ -213,8 +214,8 @@ def cleanup():
 
 def test_add_raw_data(setup, cleanup):
     assert database.add_raw_13f_data_to_database(
-        setup[0], setup[1], setup[2], True) == setup[0] + '-' + setup[1] + '-'
+        setup[0], setup[1], setup[2]) == setup[0] + '-' + setup[1] + '-'
     assert database.add_raw_13f_data_to_database(
-        setup[3], setup[4], setup[5], True) == setup[3] + '-' + setup[4] + '-'
+        setup[3], setup[4], setup[5]) == setup[3] + '-' + setup[4] + '-'
     assert database.add_raw_13f_data_to_database(
-        setup[6], setup[7], setup[8], True) == setup[6] + '-' + setup[7] + '-'
+        setup[6], setup[7], setup[8]) == setup[6] + '-' + setup[7] + '-'
