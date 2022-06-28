@@ -1,6 +1,8 @@
 from dotenv import load_dotenv
 import os
 import pymysql
+import get_top_fund13f
+import json
 import logging
 
 
@@ -41,3 +43,19 @@ def add_raw_13f_data_to_database(cik, quarter, holdings):
 
     # Returning the id_start variable.
     return id_start
+
+
+def populatedatabase():
+    data = get_top_fund13f.get_historical_data()
+    asob = json.loads(data)
+    for fil in asob['filings']:   # fil=fileing
+        add_raw_13f_data_to_database(
+            fil["cik"], fil["periodOfReport"], fil["holdings"])
+
+
+def update_data_base():
+    data = get_top_fund13f.get_last_quarter()
+    asob = json.loads(data)
+    for fil in asob['filings']:
+        add_raw_13f_data_to_database(
+            fil["cik"], fil["periodOfReport"], fil["holdings"])
