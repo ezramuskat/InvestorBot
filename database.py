@@ -67,6 +67,11 @@ def update_data_base():
 
 
 def get_total_stock_per_cik():
+    """
+    Returns a list of tuples, where each tuple contains the cik and the total number of stocks that
+    the cik owns
+    :return: A list of tuples. Each tuple contains the cik and the number of stocks that cik owns.
+    """
     cursor = connection.cursor()
     cursor.execute(
         "SELECT cik, COUNT(cusip) FROM raw_13f_data  WHERE put_call is NULL GROUP BY cik ORDER BY cik DESC")
@@ -74,6 +79,12 @@ def get_total_stock_per_cik():
 
 
 def get_total_unique_stock_per_cik():
+    """
+    Returns a list of tuples, where each tuple contains the cik and the number of unique stocks that
+    the cik has filed for
+    :return: A list of tuples. Each tuple contains the cik and the number of unique stocks that the cik
+    has.
+    """
     cursor = connection.cursor()
     cursor.execute(
         "SELECT cik, COUNT(DISTINCT cusip) FROM raw_13f_data  WHERE put_call is NULL GROUP BY cik ORDER BY cik DESC")
