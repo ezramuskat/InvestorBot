@@ -48,8 +48,8 @@ def add_raw_13f_data_to_database(cik, quarter, holdings):
     return id_start
 
 
-def populatedatabase():
-    data = open("response (1).json", "r").read()
+def populatedatabase(file):
+    data = open(file, "r").read()
     asob = json.loads(data)
     for fil in asob['filings']:   # fil=fileing
         add_raw_13f_data_to_database(
