@@ -5,6 +5,16 @@ import get_top_fund13f
 import json
 import logging
 
+load_dotenv()
+
+connection = pymysql.connect(
+    host=os.environ.get("DB_HOST"),
+    user=os.environ.get("DB_USER"),
+    password=os.environ.get("DB_PASSWORD"),
+    database=os.environ.get("DB_NAME")
+)
+# Methods to add data
+
 
 def add_raw_13f_data_to_database(cik, quarter, holdings):
     """
@@ -19,13 +29,6 @@ def add_raw_13f_data_to_database(cik, quarter, holdings):
     load_dotenv()
     id_start = str(cik) + '-' + str(quarter) + '-'
     sql = "INSERT INTO `raw_13f_data` (`HoldingID`, `cik`, `quarter`, `issuer`, `cusip`, `class`, `value`, `shareprn_amount`, `shareprn_type`, `put_call`) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"
-    # connect to the database
-    connection = pymysql.connect(
-        host=os.environ.get("DB_HOST"),
-        user=os.environ.get("DB_USER"),
-        password=os.environ.get("DB_PASSWORD"),
-        database=os.environ.get("DB_NAME")
-    )
     # go through each individual holding
     for holding in holdings:
         # add the holding to the database
@@ -46,7 +49,7 @@ def add_raw_13f_data_to_database(cik, quarter, holdings):
 
 
 def populatedatabase():
-    data = get_top_fund13f.get_historical_data()
+    data = open("response (1).json", "r").read()
     asob = json.loads(data)
     for fil in asob['filings']:   # fil=fileing
         add_raw_13f_data_to_database(
@@ -59,3 +62,19 @@ def update_data_base():
     for fil in asob['filings']:
         add_raw_13f_data_to_database(
             fil["cik"], fil["periodOfReport"], fil["holdings"])
+
+# Methods to pull data
+
+
+def get_total_stock_per_cik():
+    cursor = connection.cursor()
+    cursor.execute(
+        "SELECT cik, COUNT(cusip) FROM raw_13f_data  WHERE put_call is NULL GROUP BY cik ORDER BY cik DESC")
+    return cursor.fetchall()
+
+
+def get_total_unique_stock_per_cik():
+    cursor = connection.cursor()
+    cursor.execute(
+        "SELECT cik, COUNT(DISTINCT cusip) FROM raw_13f_data  WHERE put_call is NULL GROUP BY cik ORDER BY cik DESC")
+    return cursor.fetchall()
