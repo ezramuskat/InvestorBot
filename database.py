@@ -41,8 +41,7 @@ def add_raw_13f_data_to_database(cik, quarter, holdings):
                 "titleOfClass"], holding["value"], holding["shrsOrPrnAmt"]["sshPrnamt"], holding["shrsOrPrnAmt"]["sshPrnamtType"], put_call))
             connection.commit()
         except pymysql.err.IntegrityError:
-            logging.info(
-                "Entry with id %s is already in the database", (holding_id))
+            print("Entry with id %s is already in the database", (holding_id))
 
     # Returning the id_start variable.
     return id_start
@@ -51,9 +50,16 @@ def add_raw_13f_data_to_database(cik, quarter, holdings):
 def populatedatabase(file):
     data = open(file, "r").read()
     asob = json.loads(data)
+    count = 0
     for fil in asob['filings']:   # fil=fileing
-        add_raw_13f_data_to_database(
-            fil["cik"], fil["periodOfReport"], fil["holdings"])
+        try:
+            add_raw_13f_data_to_database(
+                fil["cik"], fil["periodOfReport"], fil["holdings"])
+            count = count + 1
+            print(count)
+        except KeyError:
+            print("filing was missing a field")
+            pass
 
 
 def update_data_base():
@@ -89,3 +95,10 @@ def get_total_unique_stock_per_cik():
     cursor.execute(
         "SELECT cik, COUNT(DISTINCT cusip) FROM raw_13f_data  WHERE put_call is NULL GROUP BY cik ORDER BY cik DESC")
     return cursor.fetchall()
+
+
+def get_unique_hedge_funds():
+    cursor = connection.cursor()
+    cursor.execute(
+        "SELECT COUNT(DISTINCT cik) FROM raw_13f_data")
+    return cursor.fetchone()
