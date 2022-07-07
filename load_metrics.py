@@ -56,5 +56,44 @@ min_stocks = min(unique_stocks_dict.values())
 median_stocks = statistics.median(unique_stocks_dict.values())
 f.write("The maximum number of unique stocks is " +
         str(max_stocks) + "." + "\n")
-f.write("The minimum number of filings is " + str(min_stocks) + "." + "\n")
-f.write("The median number of filings is " + str(median_stocks) + "." + "\n")
+f.write("The minimum number of unique stocks is " +
+        str(min_stocks) + "." + "\n")
+f.write("The median number of unique stocks is " +
+        str(median_stocks) + "." + "\n")
+
+# Get overall and average holdings per year + standard deviation
+
+cursor.execute(
+    "SELECT cik, AVG(value), quarter FROM raw_13f_data GROUP BY cik, quarter ORDER BY cik DESC")
+
+average_stocks = cursor.fetchall()
+
+values = []
+
+for average in average_stocks:
+    f.write(" " + str(average[0]) + " had an average of " +
+            str(average[1]) + " invested on " + str(average[2]) + "\n")
+    values.append(average[1])
+
+max_average = max(values)
+min_average = min(values)
+median_average = statistics.median(values)
+f.write("The maximum number of average stocks is " +
+        str(max_average) + "." + "\n")
+f.write("The minimum number of average stocks is " +
+        str(min_average) + "." + "\n")
+f.write("The median number of average stocks is " +
+        str(median_average) + "." + "\n")
+
+# Get portfolio percentages
+cursor.execute(
+    "SELECT DISTINCT quarter FROM raw_13f_data ORDER BY quarter DESC")
+
+quarters = []
+
+for quarter in cursor.fetchall():
+    quarters.append(quarter[0])
+
+for quarter in quarters:
+    cursor.execute(
+        "SELECT cik, value FROM raw_13f_data WHERE quarter = %s ORDER BY cik DESC", [quarter])
