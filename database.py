@@ -25,8 +25,7 @@ def add_raw_13f_data_to_database(cik, quarter, holdings):
     :param holdings: a list of dictionaries, each dictionary representing a holding
     :return: The starting sequence for the IDs of all entries added by this method.
     """
-    # load .env data, create the format for the beginning of the id, and set up the format for the queries
-    load_dotenv()
+    # create the format for the beginning of the id, and set up the format for the queries
     id_start = str(cik) + '-' + str(quarter) + '-'
     sql = "INSERT INTO `raw_13f_data` (`HoldingID`, `cik`, `quarter`, `issuer`, `cusip`, `class`, `value`, `shareprn_amount`, `shareprn_type`, `put_call`) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"
     # go through each individual holding
@@ -69,7 +68,40 @@ def update_data_base():
         add_raw_13f_data_to_database(
             fil["cik"], fil["periodOfReport"], fil["holdings"])
 
-# Methods to pull data
+
+def update_column_from_file(file, column):
+    data = open(file, "r").read()
+    asob = json.loads(data)
+    count = 0
+    for fil in asob['filings']:   # fil=fileing
+        try:
+            update_column(fil["cik"], fil["periodOfReport"],
+                          fil["holdings"], column)
+            count = count + 1
+            print(count)
+        except KeyError:
+            print("filing was missing a field")
+            pass
+
+
+def update_column(cik, quarter, holdings, column):
+    id_start = str(cik) + '-' + str(quarter) + '-'
+    sql = ("UPDATE raw_13f_data SET {} = %s WHERE HoldingID = %s").format(column)
+    # go through each individual holding
+    for holding in holdings:
+        # add the holding to the database
+        put_call = holding.get("putCall", None)
+        holding_id = id_start + holding["cusip"]
+        if put_call != None:
+            holding_id = holding_id + '-' + put_call
+        connection.cursor().execute(
+            sql, (holding["value"], holding_id))
+        connection.commit()
+
+    # Returning the id_start variable.
+    return id_start
+
+    # Methods to pull data
 
 
 def get_total_stock_per_cik():

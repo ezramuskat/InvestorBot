@@ -86,6 +86,9 @@ f.write("The median number of average stocks is " +
         str(median_average) + "." + "\n")
 
 # Get portfolio percentages
+
+f.write("Portfolio data: " + "\n")
+
 cursor.execute(
     "SELECT DISTINCT quarter FROM raw_13f_data ORDER BY quarter DESC")
 
@@ -95,5 +98,30 @@ for quarter in cursor.fetchall():
     quarters.append(quarter[0])
 
 for quarter in quarters:
+    f.write("\tPortfolios for " + quarter + ": " + "\n")
     cursor.execute(
-        "SELECT cik, value FROM raw_13f_data WHERE quarter = %s ORDER BY cik DESC", [quarter])
+        "SELECT cik, cusip, value FROM raw_13f_data WHERE quarter = %s ORDER BY cik DESC", [quarter])
+    cik_dict = {}
+    percentages = []
+    for holding in cursor.fetchall():
+        if holding[0] not in cik_dict:
+            cik_dict[holding[0]] = {}
+        cik_dict[holding[0]][holding[1]] = holding[2]
+    for cik in cik_dict:
+        f.write("\t \t " + str(cik) + ": " + "\n")
+        holdings = cik_dict[cik]
+        total_value = sum(holdings.values())
+        for holding in holdings:
+            percent_value = holdings[holding] / total_value * 100
+            percentages.append(percent_value)
+            f.write("\t \t \t" + str(holding) + ": " +
+                    str(percent_value) + "%\n")
+    max_percentage = max(percentages)
+    min_percentage = min(percentages)
+    median_percentage = statistics.median(percentages)
+    f.write("\t The maximum percentage for this quarter is " +
+            str(max_percentage) + "." + "\n")
+    f.write("The minimum percentage for this quarter is " +
+            str(min_percentage) + "." + "\n")
+    f.write("The median percentage for this quarter is " +
+            str(median_percentage) + "." + "\n")
