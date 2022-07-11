@@ -121,7 +121,7 @@ for quarter in quarters:
     median_percentage = statistics.median(percentages)
     f.write("\t The maximum percentage for this quarter is " +
             str(max_percentage) + "." + "\n")
-    f.write("The minimum percentage for this quarter is " +
+    f.write("\t The minimum percentage for this quarter is " +
             str(min_percentage) + "." + "\n")
-    f.write("The median percentage for this quarter is " +
+    f.write("\t The median percentage for this quarter is " +
             str(median_percentage) + "." + "\n")
