@@ -147,10 +147,3 @@ def get_quarters():
         quarters.append(quarter[0])
 
     return quarters
-
-
-def get_stock_percentages():
-    cursor = connection.cursor()
-    cursor.execute(
-        "SELECT cusip, (COUNT(DISTINCT cik)/14 * 100) AS PERCENTAGE FROM raw_13f_data WHERE put_call is NULL AND shareprn_type ='SH' AND NOT excluded GROUP BY cusip;")
-    return cursor.fetchall()
