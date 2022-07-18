@@ -89,13 +89,7 @@ f.write("The median number of average stocks is " +
 
 f.write("Portfolio data: " + "\n")
 
-cursor.execute(
-    "SELECT DISTINCT quarter FROM raw_13f_data ORDER BY quarter DESC")
-
-quarters = []
-
-for quarter in cursor.fetchall():
-    quarters.append(quarter[0])
+quarters = database.get_quarters()
 
 for quarter in quarters:
     f.write("\tPortfolios for " + quarter + ": " + "\n")

@@ -136,6 +136,19 @@ def get_unique_hedge_funds():
     return cursor.fetchone()
 
 
+def get_quarters():
+    cursor = connection.cursor()
+    cursor.execute(
+        "SELECT DISTINCT quarter FROM raw_13f_data ORDER BY quarter DESC")
+
+    quarters = []
+
+    for quarter in cursor.fetchall():
+        quarters.append(quarter[0])
+
+    return quarters
+
+
 def get_stock_percentages():
     cursor = connection.cursor()
     cursor.execute(
