@@ -17,8 +17,7 @@ def rank1(d):
     out = dict()
     listt = sorted(d.items(), key=lambda x:x[1])
     sortdict = dict(listt)
-    print(sortdict)
-    r = len(sortdict)
+    
     res =dict(reversed(list(sortdict.items())))
     i=0
     for it in res:
@@ -29,10 +28,43 @@ def rankorder(d):
     out = dict()
     listt = sorted(d.items(), key=lambda x:x[1])
     sortdict = dict(listt)
-    print(sortdict)
-    r = len(sortdict)
     res =dict(reversed(list(sortdict.items())))
-    return res    
+    return res
+
+def rank2(d):
+    out = dict()
+    listt = sorted(d.items(), key=lambda x:x[1])
+    sortdict = dict(listt)
+    
+    res =dict(reversed(list(sortdict.items())))
+    i=0
+    for it in res:
+        out[i]=it
+        i=i+1
+    return out
+
+
+def percentbracet(dic):
+    ordered =rankorder(dic)
+    out = dict()
+    uperbraket =int()
+    lower =int()
+    first = True
+    for stock in ordered:
+        if first:
+            first=False
+            lower=int(ordered[stock])
+            out[lower]=0
+        if ordered[stock]>=lower:
+            out[lower]=out[lower]+1
+        else:
+            lower= int(ordered[stock])
+            out[lower]=1
+    return out
+
+
+
+
 
 def amountinvest(n):
     x = (1647251 , 1423053 , 1009207 , 1273087 , 1791786 , 1350694 , 1061768 , 909661 , 1040273 , 1581811 , 1656456 , 1218199 ,  1103804 , 1061165 , 1167483 )
