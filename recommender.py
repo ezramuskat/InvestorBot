@@ -13,10 +13,11 @@ connection = pymysql.connect(
 )
 
 
-def get_stock_percentages():
+def get_stock_percentages_ordered():
     """
-    Returns a dictionary of quarters and the percentage of filings in each quarter that have a given holding
-    :return: A dictionary of tuples.
+    Returns a dictionary of quarters and the percentage of filings that have a given stock in them
+    :return: A dictionary of tuples. The dictionary is keyed by quarter, and the tuples are (cusip,
+    percentage)
     """
     cursor = connection.cursor()
     percentages = {}
@@ -24,7 +25,7 @@ def get_stock_percentages():
 
     for quarter in quarters:
         cursor.execute(
-            "SELECT cusip, (COUNT(DISTINCT cik)/14 * 100) AS PERCENTAGE FROM raw_13f_data WHERE quarter = %s AND put_call is NULL AND shareprn_type ='SH' AND NOT excluded GROUP BY cusip;", (quarter))
+            "SELECT cusip, (COUNT(DISTINCT cik)/14 * 100) AS PERCENTAGE FROM raw_13f_data WHERE quarter = %s AND put_call is NULL AND shareprn_type ='SH' AND NOT excluded GROUP BY cusip ORDER BY PERCENTAGE DESC;", (quarter))
         percentages[quarter] = cursor.fetchall()
 
     return percentages
