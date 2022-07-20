@@ -14,7 +14,7 @@ connection = pymysql.connect(
 )
 
 
-def get_stock_percentages_of_total_investment_per_quarter_ordered():
+def get_consensus_stock_percentages_per_quarter_ordered():
     """
     Returns a dictionary of quarters and the percentage of filings that have a given stock in them
     :return: A dictionary of tuples. The dictionary is keyed by quarter, and the tuples are (cusip,
@@ -33,23 +33,29 @@ def get_stock_percentages_of_total_investment_per_quarter_ordered():
 
 
 def rank_percentages():
-    percentages = get_stock_percentages_of_total_investment_per_quarter_ordered()
+    """
+    Takes the consensus stock percentages per quarter, assigns a score to each stock based on its
+    ranking in each quarter, and then calculates a final score for each stock based on the scores from
+    each quarter
+    :return: A list of stocks in order of their final score.
+    """
+    percentages = get_consensus_stock_percentages_per_quarter_ordered()
 
     # assign rankings
     rankings = {}
-    total_count = database.get_count_of_total_unique_holdings()
     for quarter in percentages:
-        scores = {}
-        for i in range(len(quarter)):
-            scores[quarter[i][0]] = total_count - i
-        rankings[quarter] = scores
+        rankings[quarter] = generate_scores_for_quarter(percentages[quarter])
 
     # calculate
     final_ranking = []
     for stock in database.get_all_unique_holdings():
         scores = []
         for quarter in rankings:
-            scores.append(quarter[stock])
+            try:
+                scores.append(rankings[quarter][stock])
+            except KeyError:
+                scores.append(0)
+
         final_score = 0
         for score, weight in zip(scores, generate_weights(len(scores))):
             final_score += (score * weight)
@@ -60,7 +66,27 @@ def rank_percentages():
     return [ranking[0] for ranking in final_ranking]
 
 
+def generate_scores_for_quarter(quarter_data):
+    """
+    For each holding in the quarter, assign it a score based on its rank in the quarter
+
+    :param quarter_data: a list of tuples, where each tuple is a holding and its count
+    :return: A dictionary of scores for each holding.
+    """
+    scores = {}
+    total_count = database.get_count_of_total_unique_holdings()
+    for i in range(len(quarter_data)):
+        scores[quarter_data[i][0]] = total_count - i
+    return scores
+
+
 def generate_weights(num):
+    """
+    Takes the number of weights you want to generate, and returns a list of weights that sum to 1
+
+    :param num: the number of weights to generate
+    :return: a list of weights that are used to calculate the weighted average of the data.
+    """
     if num < 2:
         return [1]
 
