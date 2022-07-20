@@ -141,12 +141,7 @@ def get_quarters():
     cursor.execute(
         "SELECT DISTINCT quarter FROM raw_13f_data ORDER BY quarter DESC")
 
-    quarters = []
-
-    for quarter in cursor.fetchall():
-        quarters.append(quarter[0])
-
-    return quarters
+    return [quarter[0] for quarter in cursor.fetchall()]
 
 
 def get_count_of_total_unique_holdings():
@@ -162,9 +157,4 @@ def get_all_unique_holdings():
     cursor.execute(
         "SELECT DISTINCT cusip FROM raw_13f_data WHERE NOT excluded AND put_call is NULL AND shareprn_type ='SH'")
 
-    holdings = []
-
-    for holding in cursor.fetchall():
-        holdings.append(holding[0])
-
-    return holdings
+    return [holding[0] for holding in cursor.fetchall()]
