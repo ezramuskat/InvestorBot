@@ -35,7 +35,7 @@ def get_stock_percentages_of_total_investment_per_quarter_ordered():
 def rank_percentages():
     percentages = get_stock_percentages_of_total_investment_per_quarter_ordered()
 
-    # assign rankings - the process here is to get the total
+    # assign rankings
     rankings = {}
     total_count = database.get_count_of_total_unique_holdings()
     for quarter in percentages:
@@ -61,4 +61,17 @@ def rank_percentages():
 
 
 def generate_weights(num):
-    return []
+    if num < 2:
+        return [1]
+
+    return_arr = []
+    weight_count = 1
+    for i in range(num, 0, -1):
+        if i < 2:
+            return_arr.extend([weight_count * (3/4), weight_count * (1/4)])
+            break
+        else:
+            weight_count /= 2
+            return_arr.append(weight_count)
+
+    return return_arr
