@@ -66,17 +66,17 @@ def percentbracet(dic):
 
 
 
-def amountinvest(n):
+def amountinvest(to,frm):# spesifiy between wich quorter you want the results range  ex if you want (5,5) it will gve you five if you want (5,6) it will give avrege between 5 and 6
     x = (1647251 , 1423053 , 1009207 , 1273087 , 1791786 , 1350694 , 1061768 , 909661 , 1040273 , 1581811 , 1656456 , 1218199 ,  1103804 , 1061165 , 1167483 )
     out = dict()
     for val in x:
         cursor4 = connection.cursor()
-        cursor4.execute("SELECT DISTINCT(quarter) FROM raw_13f_data WHERE cik = " + str(val)+" AND put_call is NULL ORDER BY quarter DESC")
+        cursor4.execute("SELECT DISTINCT(quarter) FROM raw_13f_data WHERE  put_call is NULL ORDER BY quarter DESC")
         quartes = cursor4.fetchall()
         
-        qort=n-1
+        qort=frm-1
         qurtdict=dict()
-        while qort>=0:
+        while qort>=to-1:
             cursor2 = connection.cursor()
             cursor2.execute("SELECT cusip, value FROM raw_13f_data WHERE cik = " + str(val)+" AND quarter="+"'"+quartes[qort][0]+"'"+" AND shareprn_type = 'SH' AND put_call is NULL")
             q2 = cursor2.fetchall()
@@ -89,7 +89,7 @@ def amountinvest(n):
             for st in tempdict.keys():
                 tempdict[st]= tempdict[st]*100/totalval
                 qurtdict.setdefault(st,0)
-                qurtdict[st]=qurtdict[st]+(tempdict[st]/n)
+                qurtdict[st]=qurtdict[st]+(tempdict[st]/(frm-to+1))
 
         for sto in qurtdict.keys():
             out.setdefault(sto,0)
