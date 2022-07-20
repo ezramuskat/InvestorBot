@@ -133,7 +133,7 @@ def get_unique_hedge_funds():
     cursor = connection.cursor()
     cursor.execute(
         "SELECT COUNT(DISTINCT cik) FROM raw_13f_data")
-    return cursor.fetchone()
+    return cursor.fetchone()[0]
 
 
 def get_quarters():
@@ -147,3 +147,24 @@ def get_quarters():
         quarters.append(quarter[0])
 
     return quarters
+
+
+def get_count_of_total_unique_holdings():
+    cursor = connection.cursor()
+    cursor.execute(
+        "SELECT COUNT(DISTINCT cusip) FROM raw_13f_data WHERE NOT excluded AND put_call is NULL AND shareprn_type ='SH'")
+
+    return cursor.fetchone()[0]
+
+
+def get_all_unique_holdings():
+    cursor = connection.cursor()
+    cursor.execute(
+        "SELECT DISTINCT cusip FROM raw_13f_data WHERE NOT excluded AND put_call is NULL AND shareprn_type ='SH'")
+
+    holdings = []
+
+    for holding in cursor.fetchall():
+        holdings.append(holding[0])
+
+    return holdings

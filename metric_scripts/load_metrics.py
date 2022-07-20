@@ -21,7 +21,7 @@ f = open(file_name, "w")
 
 # Get number of unique hedge funds
 f.write("Number of unique hedge funds: " +
-        str(database.get_unique_hedge_funds()[0]) + "\n")
+        str(database.get_unique_hedge_funds()) + "\n")
 
 # Get data on number of filings per hedge fund
 f.write("Filing data: " + "\n")
