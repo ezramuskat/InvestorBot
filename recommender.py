@@ -49,11 +49,14 @@ def rank_percentages(num_quarters=sys.maxsize):
 
     # assign rankings
     rankings = {}
+    total_count = database.get_count_of_total_unique_holdings()
     for quarter in percentages:
-        rankings[quarter] = generate_scores_for_quarter(percentages[quarter])
+        rankings[quarter] = generate_scores_for_quarter(
+            percentages[quarter], total_count)
 
     # calculate
     final_ranking = []
+    weights = generate_weights(len(rankings))
     for stock in database.get_all_unique_holdings():
         scores = []
         for quarter in rankings:
@@ -64,7 +67,7 @@ def rank_percentages(num_quarters=sys.maxsize):
                 scores.append(0)
 
         final_score = 0
-        for score, weight in zip(scores, generate_weights(len(scores))):
+        for score, weight in zip(scores, weights):
             final_score += (score * weight)
         final_ranking.append((stock, final_score))
 
@@ -73,7 +76,7 @@ def rank_percentages(num_quarters=sys.maxsize):
     return [ranking[0] for ranking in final_ranking]
 
 
-def generate_scores_for_quarter(quarter_data):
+def generate_scores_for_quarter(quarter_data, total_count):
     """
     For each holding in the quarter, assign it a score based on its rank in the quarter
 
@@ -81,7 +84,6 @@ def generate_scores_for_quarter(quarter_data):
     :return: A dictionary of scores for each holding.
     """
     scores = {}
-    total_count = database.get_count_of_total_unique_holdings()
     for i in range(len(quarter_data)):
         scores[quarter_data[i][0]] = total_count - i
     return scores
@@ -115,8 +117,9 @@ def recommend_stocks(num_quarters=sys.maxsize):
     conviction_scoring = []  # placeholder
 
     if len(consensus_scoring) != len(conviction_scoring):
-        raise Exception(
-            f"lists of ranking are not the same length; consensus has {len(consensus_scoring)} elements, while conviction has {len(conviction_scoring)}")
+        return 0
+        # raise Exception(
+        #   f"lists of ranking are not the same length; consensus has {len(consensus_scoring)} elements, while conviction has {len(conviction_scoring)}")
 
     conviction_scoring_dict = {stock: index for index,
                                stock in enumerate(conviction_scoring)}
