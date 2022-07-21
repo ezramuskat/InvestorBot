@@ -5,6 +5,8 @@ import get_top_fund13f
 import json
 import logging
 import recommender
+import database
+import sys
 load_dotenv()
 
 connection = pymysql.connect(
@@ -14,18 +16,22 @@ connection = pymysql.connect(
     database=os.environ.get("DB_NAME")
 )
 
-def finle_eval():
-    whights=recommender.generate_weights(11)
-    x=1
+def finle_eval(n=sys.maxsize):
+    v =n
+    if n >len(database.get_quarters()):
+        v=len(database.get_quarters())
+    whights=recommender.generate_weights(v-1)
+    
+    x=1+len(database.get_quarters())-v
     out= dict()
     for w in whights:
         rq =rank1(amountinvest(x,x))
         for stockr in rq:
             out.setdefault(stockr,0)
             out[stockr]=out[stockr]+rq[stockr]*w
-        print()
+        print(x)
         x= x+1
-    return out
+    return rank2(out)
 
 
 
@@ -53,9 +59,9 @@ def rank2(d):
     sortdict = dict(listt)
     
     res =dict(reversed(list(sortdict.items())))
-    i=0
+    i=1
     for it in res:
-        out[i]=it
+        out[it]=i
         i=i+1
     return out
 
@@ -89,10 +95,10 @@ def amountinvest(to,frm):# spesifiy between wich quorter you want the results ra
         cursor4 = connection.cursor()
         cursor4.execute("SELECT DISTINCT(quarter) FROM raw_13f_data WHERE  put_call is NULL ORDER BY quarter DESC")
         quartes = cursor4.fetchall()
-        
+        dd= to-1
         qort=frm-1
         qurtdict=dict()
-        while qort>=to-1:
+        while qort>=dd:
             cursor2 = connection.cursor()
             cursor2.execute("SELECT cusip, value FROM raw_13f_data WHERE cik = " + str(val)+" AND quarter="+"'"+quartes[qort][0]+"'"+" AND shareprn_type = 'SH' AND put_call is NULL")
             q2 = cursor2.fetchall()
