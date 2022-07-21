@@ -100,25 +100,26 @@ def amountinvest(to,frm):# spesifiy between wich quorter you want the results ra
     cursor4 = connection.cursor()
     cursor4.execute("SELECT DISTINCT(quarter) FROM raw_13f_data WHERE  put_call is NULL ORDER BY quarter DESC")
     quartes = cursor4.fetchall()
-    for val in x:
-        
-        
-        qort=frm-1
-        
-        ts =time.perf_counter()
-        cursor2 = connection.cursor()
-        cursor2.execute("SELECT cusip, value FROM raw_13f_data WHERE cik = " + str(val)+" AND quarter="+"'"+quartes[qort][0]+"'"+" AND shareprn_type = 'SH' AND put_call is NULL")
-        q2 = cursor2.fetchall()
-        qort=qort-1
-        totalval=0
+    t =time.perf_counter()
+    cursor2 = connection.cursor()
+    cursor2.execute("SELECT cusip, value, cik FROM raw_13f_data WHERE quarter="+"'"+quartes[to-1][0]+"'"+" AND shareprn_type = 'SH' AND put_call is NULL")
+    q2 = cursor2.fetchall()
+    for fund in x:
         tempdict=dict()
-       
+        totalval=0
         for stock in q2:
-            tempdict.update({stock[0]:stock[1]})
-            totalval=totalval+stock[1]
+            if stock[2]==fund:
+                tempdict.update({stock[0]:stock[1]})
+                totalval=totalval+stock[1]    
         for st in tempdict:
-            out[st]=tempdict[st]*100/totalval
-    print( time.perf_counter()-t,"t")
+            tempdict[st]=tempdict[st]*100/totalval
+            out.setdefault(st,0)
+            out[st]=out[st]+(tempdict[st]/len(x))
+        
+            
+
+        
+    print( time.perf_counter()-t,"th")
     return out
             
                 
