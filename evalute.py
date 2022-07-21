@@ -4,7 +4,7 @@ import pymysql
 import get_top_fund13f
 import json
 import logging
-
+import recommender
 load_dotenv()
 
 connection = pymysql.connect(
@@ -13,16 +13,32 @@ connection = pymysql.connect(
     password=os.environ.get("DB_PASSWORD"),
     database=os.environ.get("DB_NAME")
 )
+
+def finle_eval():
+    whights=recommender.generate_weights(11)
+    x=1
+    out= dict()
+    for w in whights:
+        rq =rank1(amountinvest(x,x))
+        for stockr in rq:
+            out.setdefault(stockr,0)
+            out[stockr]=out[stockr]+rq[stockr]*w
+        print()
+        x= x+1
+    return out
+
+
+
 def rank1(d):
     out = dict()
     listt = sorted(d.items(), key=lambda x:x[1])
     sortdict = dict(listt)
     
     res =dict(reversed(list(sortdict.items())))
-    i=0
+    i=len(res)
     for it in res:
         out[it]=i
-        i=i+1
+        i=i-1
     return out
 def rankorder(d):
     out = dict()
