@@ -4,6 +4,7 @@ import os
 import operator
 import sys
 import itertools
+import evalute
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -27,7 +28,7 @@ def get_consensus_stock_percentages_per_quarter_ordered(num_quarters=sys.maxsize
     quarters = database.get_quarters()
 
     if len(quarters) > num_quarters:
-        quarters = quarters[:num_quarters+1]
+        quarters = quarters[:num_quarters]
 
     for quarter in quarters:
         cursor.execute(
@@ -114,19 +115,15 @@ def generate_weights(num):
 
 def recommend_stocks(num_quarters=sys.maxsize):
     consensus_scoring = rank_percentages(num_quarters)
-    conviction_scoring = []  # placeholder
+    conviction_scoring = evalute.finle_eval(num_quarters)
 
     if len(consensus_scoring) != len(conviction_scoring):
-        return 0
-        # raise Exception(
-        #   f"lists of ranking are not the same length; consensus has {len(consensus_scoring)} elements, while conviction has {len(conviction_scoring)}")
-
-    conviction_scoring_dict = {stock: index for index,
-                               stock in enumerate(conviction_scoring)}
+        raise Exception(
+            f"lists of ranking are not the same length; consensus has {len(consensus_scoring)} elements, while conviction has {len(conviction_scoring)}")
 
     final_ranking = [None] * len(consensus_scoring)
     for index, stock in enumerate(consensus_scoring):
-        ranking_index = (index + conviction_scoring_dict[stock]) // 2
+        ranking_index = (index + conviction_scoring[stock]) // 2
         if final_ranking[ranking_index] is None:
             final_ranking[ranking_index] = [stock]
         else:
