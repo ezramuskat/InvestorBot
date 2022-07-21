@@ -2,6 +2,8 @@ import database
 import pymysql
 import os
 import operator
+import sys
+import itertools
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -14,7 +16,7 @@ connection = pymysql.connect(
 )
 
 
-def get_consensus_stock_percentages_per_quarter_ordered():
+def get_consensus_stock_percentages_per_quarter_ordered(num_quarters=sys.maxsize):
     """
     Returns a dictionary of quarters and the percentage of filings that have a given stock in them
     :return: A dictionary of tuples. The dictionary is keyed by quarter, and the tuples are (cusip,
@@ -24,6 +26,9 @@ def get_consensus_stock_percentages_per_quarter_ordered():
     percentages = {}
     quarters = database.get_quarters()
 
+    if len(quarters) > num_quarters:
+        quarters = quarters[:num_quarters+1]
+
     for quarter in quarters:
         cursor.execute(
             "SELECT cusip, (COUNT(DISTINCT cik)/14 * 100) AS PERCENTAGE FROM raw_13f_data WHERE quarter = %s AND put_call is NULL AND shareprn_type ='SH' AND NOT excluded GROUP BY cusip ORDER BY PERCENTAGE DESC;", (quarter))
@@ -32,14 +37,15 @@ def get_consensus_stock_percentages_per_quarter_ordered():
     return percentages
 
 
-def rank_percentages():
+def rank_percentages(num_quarters=sys.maxsize):
     """
     Takes the consensus stock percentages per quarter, assigns a score to each stock based on its
     ranking in each quarter, and then calculates a final score for each stock based on the scores from
     each quarter
     :return: A list of stocks in order of their final score.
     """
-    percentages = get_consensus_stock_percentages_per_quarter_ordered()
+    percentages = get_consensus_stock_percentages_per_quarter_ordered(
+        num_quarters)
 
     # assign rankings
     rankings = {}
@@ -54,6 +60,7 @@ def rank_percentages():
             try:
                 scores.append(rankings[quarter][stock])
             except KeyError:
+                # stock is not present in this particular quarter
                 scores.append(0)
 
         final_score = 0
@@ -101,3 +108,25 @@ def generate_weights(num):
             return_arr.append(weight_count)
 
     return return_arr
+
+
+def recommend_stocks(num_quarters=sys.maxsize):
+    consensus_scoring = rank_percentages(num_quarters)
+    conviction_scoring = []  # placeholder
+
+    if len(consensus_scoring) != len(conviction_scoring):
+        raise Exception(
+            f"lists of ranking are not the same length; consensus has {len(consensus_scoring)} elements, while conviction has {len(conviction_scoring)}")
+
+    conviction_scoring_dict = {stock: index for index,
+                               stock in enumerate(conviction_scoring)}
+
+    final_ranking = [None] * len(consensus_scoring)
+    for index, stock in enumerate(consensus_scoring):
+        ranking_index = (index + conviction_scoring_dict[stock]) // 2
+        if final_ranking[ranking_index] is None:
+            final_ranking[ranking_index] = [stock]
+        else:
+            final_ranking[ranking_index].append(stock)
+
+    return list(itertools.chain(*final_ranking))[:20]
