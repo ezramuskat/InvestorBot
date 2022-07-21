@@ -104,7 +104,7 @@ def generate_weights(num):
     weight_count = 1
     for i in range(num, 0, -1):
         if i < 2:
-            return_arr.extend([weight_count * (3/4), weight_count * (1/4)])
+            return_arr.extend([weight_count * (0.75), weight_count * (0.25)])
             break
         else:
             weight_count /= 2
@@ -114,6 +114,12 @@ def generate_weights(num):
 
 
 def recommend_stocks(num_quarters=sys.maxsize):
+    """
+    Ttakes the average of the consensus and conviction rankings, and returns the top 20 stocks
+
+    :param num_quarters: the number of quarters to look at
+    :return: A list of the top 20 stocks to buy
+    """
     consensus_scoring = rank_percentages(num_quarters)
     conviction_scoring = evalute.finle_eval(num_quarters)
 
@@ -121,12 +127,17 @@ def recommend_stocks(num_quarters=sys.maxsize):
         raise Exception(
             f"lists of ranking are not the same length; consensus has {len(consensus_scoring)} elements, while conviction has {len(conviction_scoring)}")
 
-    final_ranking = [None] * len(consensus_scoring)
+    final_ranking = {}
     for index, stock in enumerate(consensus_scoring):
         ranking_index = (index + conviction_scoring[stock]) // 2
-        if final_ranking[ranking_index] is None:
+        if ranking_index not in final_ranking:
             final_ranking[ranking_index] = [stock]
         else:
             final_ranking[ranking_index].append(stock)
 
-    return list(itertools.chain(*final_ranking))[:20]
+    # print(final_ranking)
+    return_list = []
+    for ranking_index in sorted(final_ranking.keys()):
+        return_list.extend(final_ranking[ranking_index])
+
+    return database.get_stock_names_from_cusips(return_list[:20])

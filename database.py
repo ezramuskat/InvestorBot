@@ -158,3 +158,13 @@ def get_all_unique_holdings():
         "SELECT DISTINCT cusip FROM raw_13f_data WHERE NOT excluded AND put_call is NULL AND shareprn_type ='SH'")
 
     return [holding[0] for holding in cursor.fetchall()]
+
+
+def get_stock_names_from_cusips(cusip_list):
+    cursor = connection.cursor()
+    cusip_selectors = "(cusip = %s" + ("OR cusip = %s" *
+                                       (len(cusip_list) - 1)) + ")"
+    cursor.execute(
+        "SELECT DISTINCT issuer FROM raw_13f_data WHERE NOT excluded AND put_call is NULL AND shareprn_type ='SH' AND " + cusip_selectors + " GROUP BY cusip", cusip_list)
+
+    return [stock[0] for stock in cursor.fetchall()]
