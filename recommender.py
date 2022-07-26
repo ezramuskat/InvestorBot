@@ -1,3 +1,4 @@
+import time
 import database
 import pymysql
 import os
@@ -38,27 +39,25 @@ def get_consensus_stock_percentages_per_quarter_ordered(num_quarters=sys.maxsize
     return percentages
 
 
-def rank_percentages(num_quarters=sys.maxsize):
+def rank_percentages(percentages):
     """
     Takes the consensus stock percentages per quarter, assigns a score to each stock based on its
     ranking in each quarter, and then calculates a final score for each stock based on the scores from
     each quarter
     :return: A list of stocks in order of their final score.
     """
-    percentages = get_consensus_stock_percentages_per_quarter_ordered(
-        num_quarters)
 
     # assign rankings
     rankings = {}
-    total_count = database.get_count_of_total_unique_holdings()
+    all_stocks = database.get_all_unique_holdings()
     for quarter in percentages:
         rankings[quarter] = generate_scores_for_quarter(
-            percentages[quarter], total_count)
+            percentages[quarter], len(all_stocks))
 
     # calculate
     final_ranking = []
     weights = generate_weights(len(rankings))
-    for stock in database.get_all_unique_holdings():
+    for stock in all_stocks:
         scores = []
         for quarter in rankings:
             try:
@@ -103,12 +102,13 @@ def generate_weights(num):
     return_arr = []
     weight_count = 1
     for i in range(num, 0, -1):
-        if i < 2:
-            return_arr.extend([weight_count * (0.75), weight_count * (0.25)])
+        if i < 3:
+            return_arr = [weight_count *
+                          (0.25), weight_count * (0.75)] + return_arr
             break
         else:
             weight_count /= 2
-            return_arr.append(weight_count)
+            return_arr.insert(0, weight_count)
 
     return return_arr
 
@@ -120,9 +120,11 @@ def recommend_stocks(num_quarters=sys.maxsize):
     :param num_quarters: the number of quarters to look at
     :return: A list of the top 20 stocks to buy
     """
-    consensus_scoring = rank_percentages(num_quarters)
+    # print(time.perf_counter())
+    consensus_scoring = rank_percentages(
+        get_consensus_stock_percentages_per_quarter_ordered(num_quarters))
     conviction_scoring = evalute.finle_eval(num_quarters)
-
+    # print(time.perf_counter())
     if len(consensus_scoring) != len(conviction_scoring):
         raise Exception(
             f"lists of ranking are not the same length; consensus has {len(consensus_scoring)} elements, while conviction has {len(conviction_scoring)}")
@@ -135,7 +137,7 @@ def recommend_stocks(num_quarters=sys.maxsize):
         else:
             final_ranking[ranking_index].append(stock)
 
-    # print(final_ranking)
+    # print(sorted(final_ranking.keys()))
     return_list = []
     for ranking_index in sorted(final_ranking.keys()):
         return_list.extend(final_ranking[ranking_index])

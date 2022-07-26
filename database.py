@@ -139,7 +139,7 @@ def get_unique_hedge_funds():
 def get_quarters():
     cursor = connection.cursor()
     cursor.execute(
-        "SELECT DISTINCT quarter FROM raw_13f_data ORDER BY quarter DESC")
+        "SELECT DISTINCT quarter FROM raw_13f_data ORDER BY quarter ASC")
 
     return [quarter[0] for quarter in cursor.fetchall()]
 
@@ -165,6 +165,8 @@ def get_stock_names_from_cusips(cusip_list):
     cusip_selectors = "(cusip = %s" + ("OR cusip = %s" *
                                        (len(cusip_list) - 1)) + ")"
     cursor.execute(
-        "SELECT DISTINCT issuer FROM raw_13f_data WHERE NOT excluded AND put_call is NULL AND shareprn_type ='SH' AND " + cusip_selectors + " GROUP BY cusip", cusip_list)
+        "SELECT DISTINCT cusip, issuer FROM raw_13f_data WHERE NOT excluded AND put_call is NULL AND shareprn_type ='SH' AND " + cusip_selectors + " GROUP BY cusip", cusip_list)
 
-    return [stock[0] for stock in cursor.fetchall()]
+    name_dict = dict(cursor.fetchall())
+
+    return [name_dict[cusip] for cusip in cusip_list]
