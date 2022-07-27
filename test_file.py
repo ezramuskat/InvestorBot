@@ -66,6 +66,13 @@ def generate_ranking_for_single_quarter(scoring, length):
     return [ranking[0] for ranking in final_ranking]
 
 
+def index_comparison(index, stock, other_list):
+    if stock in other_list:
+        return abs(index - other_list.index(stock))
+    else:
+        return None
+
+
 if __name__ == "__main__":
     file_name = "model_tests/test-" + \
         datetime.now().strftime("%d-%m-%Y-%H:%M:%S") + ".txt"
@@ -73,13 +80,22 @@ if __name__ == "__main__":
     # for each quarter, starting from the third one in the database
     quarters = database.get_quarters()
     actual_results = generate_per_quarter_rankings()
-    for index, quarter in enumerate(quarters[2:], 3):
+    for index, quarter in enumerate(quarters[2:-1], 2):
         print(quarter)
         f.write("Predictions for " + quarter + "\n")
         # get the recommendations for that quarter
         recommendations = recommender.recommend_stocks(index)
         # get the recommendations based solely on the next quarter's 13f data
         actual = actual_results[quarter]
+        # calculate some similarity metrics
+        num_overlapping_stocks = len(set(recommendations) & set(actual))
+        deviations_from_position = list(filter(None, [index_comparison(
+            idx, stock, recommendations) for idx, stock in enumerate(actual)]))
+
         # put the two into a text file for comparison
         f.write("\tPredictions: " + str(recommendations) + "\n")
         f.write("\tActual: " + str(actual) + "\n")
+        f.write("\tNumber of stock correctly picked: " +
+                str(num_overlapping_stocks) + "\n")
+        f.write("\tAverage stock deviation from correct position: " +
+                str(sum(deviations_from_position)/len(deviations_from_position)) + "\n")

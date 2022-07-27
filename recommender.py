@@ -107,15 +107,16 @@ def generate_weights(num):
                           (0.25), weight_count * (0.75)] + return_arr
             break
         else:
-            weight_count /= 2
-            return_arr.insert(0, weight_count)
+            weight = weight_count * 0.5
+            return_arr.insert(0, weight)
+            weight_count -= weight
 
     return return_arr
 
 
 def recommend_stocks(num_quarters=sys.maxsize):
     """
-    Ttakes the average of the consensus and conviction rankings, and returns the top 20 stocks
+    Takes the average of the consensus and conviction rankings, and returns the top 20 stocks
 
     :param num_quarters: the number of quarters to look at
     :return: A list of the top 20 stocks to buy
@@ -123,6 +124,7 @@ def recommend_stocks(num_quarters=sys.maxsize):
     # print(time.perf_counter())
     consensus_scoring = rank_percentages(
         get_consensus_stock_percentages_per_quarter_ordered(num_quarters))
+    # print(time.perf_counter())
     conviction_scoring = evalute.finle_eval(num_quarters)
     # print(time.perf_counter())
     if len(consensus_scoring) != len(conviction_scoring):
@@ -141,5 +143,5 @@ def recommend_stocks(num_quarters=sys.maxsize):
     return_list = []
     for ranking_index in sorted(final_ranking.keys()):
         return_list.extend(final_ranking[ranking_index])
-
+    # print(time.perf_counter())
     return database.get_stock_names_from_cusips(return_list[:20])
