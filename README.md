@@ -57,8 +57,7 @@ Save your API key for later use.
 NOTE The Free Version of this API key has a capacity of 100 queries. After that a new API key is required.
 
 ## 5. Set up your config file
-
-Create a file titled .env. In this file, put your AWS login information and your API key to keep them secret.
+Your AWS login information and API key will be stored in a .env file on your computer to keep them secret. To add them automatically to all files in this project using this information, manually edit the variables inside the example.env file to match the values selected for the DB_host_nane, DB_User_name, DB_Password, DB_name, and API key.
 
 ## 6. Running the Stock Analysis Tool
 
